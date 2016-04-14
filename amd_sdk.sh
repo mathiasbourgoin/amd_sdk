@@ -1,49 +1,38 @@
 #!/bin/bash
 
-if [ ! -x /usr/bin/wget ] ; then
-    command -v wget >/dev/null 2>&1 || { echo >&2 "wget not found. Installing wget now."; exit 1; }
-    apt-get install wget
-fi
+# Original script from https://github.com/gregvw/amd_sdk/
+# Original modification from https://gist.github.com/vchuravy/1faa40c2df51e3a9ee55#file-amd_sdk-sh
 
-# Location from which to download
-url1="http://developer.amd.com/tools-and-sdks/opencl-zone/opencl-tools-sdks/"
-url2="amd-accelerated-parallel-processing-app-sdk/"
-url=$url1$url2
+# Location from which get nonce and file name from
+URL="http://developer.amd.com/tools-and-sdks/opencl-zone/opencl-tools-sdks/amd-accelerated-parallel-processing-app-sdk/"
+URLDOWN="http://developer.amd.com/amd-license-agreement-appsdk/"
 
-# Lookup the JavaScript value of the of the download on the AMD SDK page
-kernel=`arch`
+NONCE1_STRING='name="amd_developer_central_downloads_page_nonce"'
+FILE_STRING='name="f"'
+POSTID_STRING='name="post_id"'
+NONCE2_STRING='name="amd_developer_central_nonce"'
 
-a="amd_developer_central_nonce="
-b='&_wp_http_referer=/tools-and-sdks/opencl-zone/opencl-tools-sdks/'
-c='amd-accelerated-parallel-processing-app-sdk/&f='
+FORM=`wget -qO - $URL | sed -n '/download-5/,/64-bit/p'`
 
-if [ $kernel == "x86_64" ] # 64-bit version
-then  
-    echo "64-bit kernel detected"
-    value1=`wget -qO - $url | sed -n '/download-2/,/64-bit/p'`
-    value2='QU1ELUFQUC1TREstdjIuOS1sbng2NC50Z3o='
- 
-else # 32-bit version
-    echo "32-bit kernel detected"
-    value1=`wget -qO - $url | sed -n '/download-1/,/32-bit/p'`
-    value2='QU1ELUFQUC1TREstdjIuOS1sbngzMi50Z3o='
-fi
+# Get nonce from form
+NONCE1=`echo $FORM | awk -F ${NONCE1_STRING} '{print $2}'`
+NONCE1=`echo $NONCE1 | awk -F'"' '{print $2}'`
+echo $NONCE1
 
-value1=`echo $value1 | awk -F 'value="' '{print $2}'`
-value1=`echo $value1 | awk -F'"' '{print $1}'`
-value1=`echo $value1 | head -2`
-value1=`echo $value1 | tail -1`
-    
-# Concatenate
-text=$a$value1$b$c$value2   
+# get the postid
+POSTID=`echo $FORM | awk -F ${POSTID_STRING} '{print $2}'`
+POSTID=`echo $POSTID | awk -F'"' '{print $2}'`
+echo $POSTID
 
-wget --content-disposition --trust-server-names --post-data=$text $url
+# get file name
+FILE=`echo $FORM | awk -F ${FILE_STRING} '{print $2}'`
+FILE=`echo $FILE | awk -F'"' '{print $2}'`
+echo $FILE
 
+FORM=`wget -qO - $URLDOWN --post-data "amd_developer_central_downloads_page_nonce=${NONCE1}&f=${FILE}&post_id=${POSTID}"`
 
-tar zxvf AMD-APP-SDK-v2.9-lnx32.tgz 
-sh ./Install-AMD-APP.sh 
-ln -sf /opt/AMDAPP/include/CL /usr/include
-ln -sf /opt/AMDAPP/lib/x86/* /usr/lib/
-ldconfig
+NONCE2=`echo $FORM | awk -F ${NONCE2_STRING} '{print $2}'`
+NONCE2=`echo $NONCE2 | awk -F'"' '{print $2}'`
+echo $NONCE2
 
-
+wget --content-disposition --trust-server-names $URLDOWN --post-data "amd_developer_central_nonce=${NONCE2}&f=${FILE}" -O AMD-SDK.tar.bz2;
