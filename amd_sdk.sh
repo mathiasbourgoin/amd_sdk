@@ -42,5 +42,5 @@ tar xjf AMD-SDK.tar.bz2
 mkdir AMD_SDK
 sh AMD*.sh --noexec --target AMD_SDK
 
-cd AMD_SDK && ./install.sh -s y -a y
+cd AMD_SDK && bash ./install.sh -s y -a y
 
