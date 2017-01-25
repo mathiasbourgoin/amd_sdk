@@ -4,6 +4,9 @@
 # Original modification from https://gist.github.com/vchuravy/1faa40c2df51e3a9ee55#file-amd_sdk-sh
 
 # Location from which get nonce and file name from
+
+echo "By using this script, you agree with AMD APPSDK License Agreement"
+
 URL="http://developer.amd.com/tools-and-sdks/opencl-zone/opencl-tools-sdks/amd-accelerated-parallel-processing-app-sdk/"
 URLDOWN="http://developer.amd.com/amd-license-agreement-appsdk/"
 
@@ -12,7 +15,7 @@ FILE_STRING='name="f"'
 POSTID_STRING='name="post_id"'
 NONCE2_STRING='name="amd_developer_central_nonce"'
 
-FORM=`wget -qO - $URL | sed -n '/download-5/,/64-bit/p'`
+FORM=`wget -qO - $URL | sed -n '/download-2/,/64-bit/p'`
 
 # Get nonce from form
 NONCE1=`echo $FORM | awk -F ${NONCE1_STRING} '{print $2}'`
